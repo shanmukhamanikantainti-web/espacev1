@@ -17,7 +17,8 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
     }
 
     // Domain restriction check (fail-safe)
-    if (!user.email?.endsWith('@vishnu.edu.in')) {
+    const isSuperAdmin = user.email === import.meta.env.VITE_SUPER_ADMIN_EMAIL;
+    if (!user.email?.endsWith('@vishnu.edu.in') && !isSuperAdmin) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 font-sans">
                 <div className="max-w-md w-full p-8 bg-slate-900 rounded-2xl border border-red-500/30 text-center">

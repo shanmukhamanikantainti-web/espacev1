@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { AuthProvider } from './contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import DashboardLayout from './components/DashboardLayout';
@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import FileWorkspace from './pages/FileWorkspace';
 import MeetSpace from './pages/MeetSpace';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminAccessGate from './components/AdminAccessGate';
 import { AlertTriangle, Settings } from 'lucide-react';
 
 const EnvError = () => (
@@ -34,20 +35,30 @@ const EnvError = () => (
 
 function App() {
   if (!isConfigured) return <EnvError />;
+  const [isAdminGateOpen, setIsAdminGateOpen] = useState(false);
+  const { user } = useAuth();
+
   // Global listener for Ctrl + Q
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key === 'q') {
-        window.location.href = '/admin';
+        const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
+        if (user?.email === SUPER_ADMIN_EMAIL) {
+          setIsAdminGateOpen(true);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [user]);
 
   return (
     <AuthProvider>
       <Router>
+        <AdminAccessGate
+          isOpen={isAdminGateOpen}
+          onClose={() => setIsAdminGateOpen(false)}
+        />
         <Routes>
           <Route path="/login" element={<Login />} />
 
