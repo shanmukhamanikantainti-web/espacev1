@@ -17,6 +17,10 @@ import {
 import { cn } from '../lib/utils';
 
 const FileWorkspace = () => {
+    const { profile, manualAdmin } = useAuth();
+    const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
+    const isSuperAdmin = manualAdmin?.isAuthenticated && manualAdmin?.email?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase();
+
     const [files, setFiles] = useState([
         { id: 1, name: 'Project_Proposal.pdf', size: '2.4 MB', type: 'PDF', date: '2024-02-25' },
         { id: 2, name: 'System_Architecture.png', size: '1.8 MB', type: 'Image', date: '2024-02-26' },

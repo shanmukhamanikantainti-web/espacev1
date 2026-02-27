@@ -52,7 +52,9 @@ const StatCard = ({ title, value, icon: Icon, color, trend }) => (
 );
 
 const Dashboard = () => {
-    const { profile } = useAuth();
+    const { profile, manualAdmin } = useAuth();
+    const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
+    const isSuperAdmin = manualAdmin?.isAuthenticated && manualAdmin?.email?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase();
     const [milestones, setMilestones] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -76,7 +78,7 @@ const Dashboard = () => {
                         <p className="font-black tracking-[0.3em] text-[10px] uppercase italic">Workspace Strategic Overview</p>
                     </div>
                     <h1 className="text-6xl font-black gold-text-gradient italic tracking-tighter leading-none">
-                        {profile?.team_name?.toUpperCase() || 'COMMAND'} DASHBOARD
+                        {(isSuperAdmin ? 'SHANMUKHA INTI' : profile?.team_name) || 'COMMAND'} DASHBOARD
                     </h1>
                 </div>
                 <div className="flex items-center gap-4">

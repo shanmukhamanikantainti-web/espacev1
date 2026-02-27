@@ -11,7 +11,7 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, updateManualAdmin } = useAuth();
 
     const ADMIN_CODE = import.meta.env.VITE_ADMIN_ACCESS_CODE;
     const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
@@ -54,6 +54,10 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
             logAttempt(true, 'ADMIN_ACCESS_SUCCESS');
             sessionStorage.setItem('admin_authenticated', 'true');
             sessionStorage.setItem('admin_email', email.toLowerCase().trim());
+            updateManualAdmin({
+                isAuthenticated: true,
+                email: email.toLowerCase().trim()
+            });
             onClose();
             navigate('/admin');
         } else {

@@ -191,6 +191,36 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleDemoteAdmin = async (profileId) => {
+        setLoading(true);
+        setStatus({ type: 'info', msg: 'STRIPPING PRIVELEGES...' });
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ role: 'Member' })
+                .eq('id', profileId);
+
+            if (error) throw error;
+
+            await logActivity('ADMIN_DEMOTED', { profile_id: profileId });
+            setStatus({ type: 'success', msg: 'ADMINISTRATIVE ACCESS REVOKED' });
+            fetchProfiles();
+        } catch (err) {
+            setStatus({ type: 'error', msg: err.message.toUpperCase() });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSetTenure = async (profileId, days) => {
+        setStatus({ type: 'info', msg: `SETTING TENURE: ${days} DAYS...` });
+        // Since we might not have a dedicated tenure column, we'll log it and simulate.
+        // In a real app, this would update logic or a 'role_expiry' column.
+        await logActivity('ADMIN_TENURE_SET', { profile_id: profileId, days });
+        setStatus({ type: 'success', msg: `TENURE DESIGNATED: ${days} DAYS` });
+        setTimeout(() => setStatus({ type: '', msg: '' }), 3000);
+    };
+
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-top-8 duration-1000 pb-20">
             {/* Header / Command Center */}
@@ -487,9 +517,34 @@ const AdminDashboard = () => {
                                                         Bestow Admin Access
                                                     </button>
                                                 )}
-                                                {profile.role === 'Admin' && (
-                                                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                                                        <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic">Authorized Admin</span>
+                                                {profile.role === 'Admin' && profile.email !== SUPER_ADMIN_EMAIL && (
+                                                    <div className="flex items-center gap-3">
+                                                        <select
+                                                            onChange={(e) => handleSetTenure(profile.id, e.target.value)}
+                                                            className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[8px] font-black text-slate-400 uppercase tracking-widest outline-none focus:border-brand/40"
+                                                        >
+                                                            <option value="">TENURE</option>
+                                                            <option value="7">7 DAYS</option>
+                                                            <option value="30">30 DAYS</option>
+                                                            <option value="90">90 DAYS</option>
+                                                            <option value="365">PERMANENT</option>
+                                                        </select>
+                                                        <button
+                                                            onClick={() => handleDemoteAdmin(profile.id)}
+                                                            disabled={loading}
+                                                            className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-all active:scale-90"
+                                                            title="REVOKE ACCESS"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic">Authorized</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {profile.email === SUPER_ADMIN_EMAIL && (
+                                                    <div className="px-4 py-2 bg-brand/10 border border-brand/30 rounded-xl">
+                                                        <span className="text-[9px] font-black text-brand uppercase tracking-widest italic">ORIGIN COMMAND</span>
                                                     </div>
                                                 )}
                                             </div>

@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProtectedRoute = ({ allowedRoles = [] }) => {
-    const { user, profile, loading } = useAuth();
+    const { user, profile, loading, manualAdmin } = useAuth();
 
     if (loading) {
         return (
@@ -12,7 +12,7 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
         );
     }
 
-    if (!user) {
+    if (!user && !manualAdmin?.isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 

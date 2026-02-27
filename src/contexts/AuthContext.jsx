@@ -7,6 +7,10 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [manualAdmin, setManualAdmin] = useState({
+        isAuthenticated: sessionStorage.getItem('admin_authenticated') === 'true',
+        email: sessionStorage.getItem('admin_email')
+    });
 
     useEffect(() => {
         // Check active sessions and sets the user
@@ -70,11 +74,18 @@ export const AuthProvider = ({ children }) => {
 
     const signOut = async () => {
         const { error } = await supabase.auth.signOut();
+        sessionStorage.removeItem('admin_authenticated');
+        sessionStorage.removeItem('admin_email');
+        setManualAdmin({ isAuthenticated: false, email: null });
         if (error) throw error;
     };
 
+    const updateManualAdmin = (data) => {
+        setManualAdmin(data);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, signOut }}>
+        <AuthContext.Provider value={{ user, profile, loading, manualAdmin, updateManualAdmin, signInWithGoogle, signOut }}>
             {children}
         </AuthContext.Provider>
     );
