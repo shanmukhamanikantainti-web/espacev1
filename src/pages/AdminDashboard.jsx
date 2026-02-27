@@ -39,7 +39,15 @@ const AdminDashboard = () => {
     useEffect(() => {
         // Strict security check
         const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
-        if (user?.email !== SUPER_ADMIN_EMAIL || !isAuth) {
+        const adminEmail = sessionStorage.getItem('admin_email');
+
+        // Access allowed if:
+        // 1. Manually authenticated via gate with correct email
+        // 2. OR Logged in via Supabase with super admin email
+        const isManualAdmin = isAuth && adminEmail === SUPER_ADMIN_EMAIL;
+        const isSupabaseAdmin = user?.email === SUPER_ADMIN_EMAIL;
+
+        if (!isManualAdmin && !isSupabaseAdmin) {
             navigate('/');
             return;
         }

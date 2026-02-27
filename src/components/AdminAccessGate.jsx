@@ -26,14 +26,13 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
     }, [isOpen]);
 
     const logAttempt = async (success, type) => {
-        try {
-            await supabase.from('activity_logs').insert({
-                activity_type: type,
-                user_id: user?.id,
-            });
-        } catch (err) {
-            console.error('Failed to log activity:', err);
-        }
+        // Non-blocking log attempt to prevent hanging UI
+        supabase.from('activity_logs').insert({
+            activity_type: type,
+            user_id: user?.id,
+        }).then(({ error }) => {
+            if (error) console.warn('Activity log failed:', error.message);
+        });
     };
 
     const handleEmailSubmit = (e) => {
@@ -53,14 +52,19 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
         setError('');
 
         if (code === ADMIN_CODE) {
-            await logAttempt(true, 'ADMIN_ACCESS_SUCCESS');
+            logAttempt(true, 'ADMIN_ACCESS_SUCCESS');
             sessionStorage.setItem('admin_authenticated', 'true');
+            sessionStorage.setItem('admin_email', email.toLowerCase().trim());
             onClose();
             navigate('/admin');
         } else {
-            await logAttempt(false, 'ADMIN_CODE_FAILURE');
+            logAttempt(false, 'ADMIN_CODE_FAILURE');
             setError('Invalid Security Code');
-            setTimeout(() => setCode(''), 1000);
+            setTimeout(() => {
+                setCode('');
+                setLoading(false);
+            }, 1000);
+            return;
         }
         setLoading(false);
     };
