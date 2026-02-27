@@ -44,16 +44,17 @@ const AdminDashboard = () => {
         // Access allowed if:
         // 1. Manually authenticated via gate with correct email
         // 2. OR Logged in via Supabase with super admin email
-        const isManualAdmin = isAuth && adminEmail === SUPER_ADMIN_EMAIL;
-        const isSupabaseAdmin = user?.email === SUPER_ADMIN_EMAIL;
+        const isManualAdmin = isAuth && adminEmail?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase();
+        const isSupabaseAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase();
 
         if (!isManualAdmin && !isSupabaseAdmin) {
+            console.log('Admin check failed:', { isManualAdmin, isSupabaseAdmin, adminEmail, userEmail: user?.email });
             navigate('/');
             return;
         }
         fetchTeams();
         fetchLogs();
-    }, [user, navigate]);
+    }, [user, navigate, SUPER_ADMIN_EMAIL]);
 
     const fetchTeams = async () => {
         const { data } = await supabase.from('teams').select('*');
@@ -72,7 +73,7 @@ const AdminDashboard = () => {
     const logActivity = async (type, metadata = {}) => {
         await supabase.from('activity_logs').insert({
             activity_type: type,
-            user_id: user.id,
+            user_id: user?.id,
             // We can potentially add more fields if needed
         });
     };

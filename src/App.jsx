@@ -64,8 +64,12 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/workspace" element={<FileWorkspace />} />
             <Route path="/meet" element={<MeetSpace />} />
-            <Route path="/admin" element={<AdminDashboard />} />
           </Route>
+        </Route>
+
+        {/* Admin Route (Self-Protected via Gate) */}
+        <Route element={<DashboardLayout />}>
+          <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
