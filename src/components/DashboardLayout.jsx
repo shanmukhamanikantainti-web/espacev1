@@ -10,7 +10,8 @@ import {
     Menu,
     X,
     ShieldCheck,
-    Sparkles
+    Sparkles,
+    Settings as ManagementIcon
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -19,13 +20,25 @@ const Sidebar = () => {
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(true);
 
+    const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
+    const adminEmail = sessionStorage.getItem('admin_email');
+    const isAdminAuth = sessionStorage.getItem('admin_authenticated') === 'true';
+
+    const isSuperAdmin = (profile?.email?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase()) ||
+        (isAdminAuth && adminEmail?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase());
+
+    const isAnyAdmin = profile?.role === 'Admin' || isAdminAuth;
+
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
         { name: 'Workspace', icon: FolderOpen, path: '/workspace' },
-        { name: 'Meet Space', icon: Video, path: '/meet' },
     ];
 
-    if (profile?.role === 'Admin') {
+    if (!isSuperAdmin) {
+        navItems.push({ name: 'Meet Space', icon: Video, path: '/meet' });
+    }
+
+    if (isAnyAdmin) {
         navItems.push({ name: 'Admin Portal', icon: ShieldCheck, path: '/admin' });
     }
 
@@ -85,8 +98,12 @@ const Sidebar = () => {
                     </div>
                     {isOpen && (
                         <div className="overflow-hidden">
-                            <p className="text-sm font-black text-white truncate tracking-tight">{profile?.name || 'Workspace User'}</p>
-                            <p className="text-[10px] text-brand/70 font-black uppercase tracking-[0.2em]">{profile?.role || 'Member'}</p>
+                            <p className="text-sm font-black text-white truncate tracking-tight">
+                                {isSuperAdmin ? 'SHANMUKHA INTI' : (profile?.name || 'Workspace User')}
+                            </p>
+                            <p className="text-[10px] text-brand/70 font-black uppercase tracking-[0.2em]">
+                                {isSuperAdmin ? 'SUPER ADMIN' : (profile?.role || 'Member')}
+                            </p>
                         </div>
                     )}
                 </div>

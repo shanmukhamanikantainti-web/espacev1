@@ -3,7 +3,8 @@ import {
     Users, Plus, ShieldCheck, Mail, Lock, UserPlus,
     Briefcase, FileText, Layout, Trash2, Save, X,
     Activity, ChevronRight, CheckCircle2, AlertCircle,
-    Command, Sparkles, Database, History, Search
+    Command, Sparkles, Database, History, Search,
+    Settings as ManagementIcon, TrendingUp, UserCheck
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,8 +15,14 @@ const AdminDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState('teams'); // 'teams' or 'accounts'
+    const [activeTab, setActiveTab] = useState('teams'); // 'teams', 'accounts', 'management'
     const [status, setStatus] = useState({ type: '', msg: '' });
+
+    const [existingTeams, setExistingTeams] = useState([]);
+    const [allProfiles, setAllProfiles] = useState([]);
+    const [allProjects, setAllProjects] = useState([]);
+    const [logs, setLogs] = useState([]);
+    const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
 
     // Team Form State
     const [teamData, setTeamData] = useState({
@@ -34,33 +41,39 @@ const AdminDashboard = () => {
         team_id: ''
     });
 
-    const [existingTeams, setExistingTeams] = useState([]);
-    const [logs, setLogs] = useState([]);
-    const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
-
     useEffect(() => {
-        // Strict security check
         const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
         const adminEmail = sessionStorage.getItem('admin_email');
-
-        // Access allowed if:
-        // 1. Manually authenticated via gate with correct email
-        // 2. OR Logged in via Supabase with super admin email
         const isManualAdmin = isAuth && adminEmail?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase();
         const isSupabaseAdmin = user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL?.toLowerCase();
 
         if (!isManualAdmin && !isSupabaseAdmin) {
-            console.log('Admin check failed:', { isManualAdmin, isSupabaseAdmin, adminEmail, userEmail: user?.email });
             navigate('/');
             return;
         }
+        fetchAllData();
+    }, [user, navigate, SUPER_ADMIN_EMAIL]);
+
+    const fetchAllData = async () => {
         fetchTeams();
         fetchLogs();
-    }, [user, navigate, SUPER_ADMIN_EMAIL]);
+        fetchProfiles();
+        fetchProjects();
+    };
 
     const fetchTeams = async () => {
         const { data } = await supabase.from('teams').select('*');
         setExistingTeams(data || []);
+    };
+
+    const fetchProfiles = async () => {
+        const { data } = await supabase.from('profiles').select('*').order('name');
+        setAllProfiles(data || []);
+    };
+
+    const fetchProjects = async () => {
+        const { data } = await supabase.from('projects').select('*, teams(team_name)');
+        setAllProjects(data || []);
     };
 
     const fetchLogs = async () => {
@@ -107,6 +120,7 @@ const AdminDashboard = () => {
             setStatus({ type: 'success', msg: 'STRATEGIC TEAM ASSET CREATED SUCCESSFULLY' });
             setTeamData({ name: '', project_title: '', problem_statement: '', members: [{ name: '', role: 'Member', position: 'Developer' }] });
             fetchTeams();
+            fetchProjects();
         } catch (err) {
             setStatus({ type: 'error', msg: err.message.toUpperCase() });
         } finally {
@@ -147,6 +161,29 @@ const AdminDashboard = () => {
             await logActivity('ACCOUNT_CREATED', { email: accountData.email, role: accountData.role });
             setStatus({ type: 'success', msg: 'IDENTITY PROVISIONED. USER CAN NOW ACCESS WORKSPACE.' });
             setAccountData({ name: '', email: '', password: '', role: 'Member', team_id: '' });
+            fetchProfiles();
+        } catch (err) {
+            setStatus({ type: 'error', msg: err.message.toUpperCase() });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGrantAdmin = async (profileId, currentRole) => {
+        if (currentRole === 'Admin') return;
+        setLoading(true);
+        setStatus({ type: 'info', msg: 'ESCALATING PRIVELEGES...' });
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ role: 'Admin' })
+                .eq('id', profileId);
+
+            if (error) throw error;
+
+            await logActivity('ADMIN_GRANTED', { profile_id: profileId });
+            setStatus({ type: 'success', msg: 'ADMINISTRATIVE ACCESS GRANTED SUCCESSFULLY' });
+            fetchProfiles();
         } catch (err) {
             setStatus({ type: 'error', msg: err.message.toUpperCase() });
         } finally {
@@ -172,24 +209,35 @@ const AdminDashboard = () => {
                     <button
                         onClick={() => setActiveTab('teams')}
                         className={cn(
-                            "px-8 py-3 rounded-xl text-xs font-black transition-all duration-500 flex items-center gap-3 tracking-widest uppercase",
+                            "px-6 py-3 rounded-xl text-[10px] font-black transition-all duration-500 flex items-center gap-2 tracking-widest uppercase",
                             activeTab === 'teams'
                                 ? "bg-brand text-bg-deep shadow-lg shadow-brand/20 italic"
                                 : "text-slate-500 hover:text-slate-200"
                         )}
                     >
-                        <Layout size={16} /> Team Registry
+                        <Layout size={14} /> REGISTER TEAM
                     </button>
                     <button
                         onClick={() => setActiveTab('accounts')}
                         className={cn(
-                            "px-8 py-3 rounded-xl text-xs font-black transition-all duration-500 flex items-center gap-3 tracking-widest uppercase",
+                            "px-6 py-3 rounded-xl text-[10px] font-black transition-all duration-500 flex items-center gap-2 tracking-widest uppercase",
                             activeTab === 'accounts'
                                 ? "bg-brand text-bg-deep shadow-lg shadow-brand/20 italic"
                                 : "text-slate-500 hover:text-slate-200"
                         )}
                     >
-                        <UserPlus size={16} /> Personnel
+                        <UserPlus size={14} /> MEMBERS
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('management')}
+                        className={cn(
+                            "px-6 py-3 rounded-xl text-[10px] font-black transition-all duration-500 flex items-center gap-2 tracking-widest uppercase",
+                            activeTab === 'management'
+                                ? "bg-brand text-bg-deep shadow-lg shadow-brand/20 italic"
+                                : "text-slate-500 hover:text-slate-200"
+                        )}
+                    >
+                        <ManagementIcon size={14} /> ADMIN MANAGEMENT
                     </button>
                 </div>
             </div>
@@ -212,21 +260,20 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                {/* Dynamic Management Forms */}
-                <div className="glassmorphism rounded-[2.5rem] border border-white/5 p-10 relative overflow-hidden group">
-                    {/* Ambient Glow */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                {/* Dynamic Management Forms / Views */}
+                <div className="lg:col-span-8 glassmorphism rounded-[2.5rem] border border-white/5 p-10 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 blur-3xl rounded-full group-hover:bg-brand/10 transition-colors" />
 
-                    {activeTab === 'teams' ? (
+                    {activeTab === 'teams' && (
                         <div className="space-y-10">
                             <div className="flex items-center gap-5">
-                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand shadow-xl shadow-brand/5">
+                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand">
                                     <Plus size={32} />
                                 </div>
                                 <div>
-                                    <h2 className="text-3xl font-black text-white italic tracking-tighter">CREATE NEW TEAM</h2>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Initialize workspace team architecture.</p>
+                                    <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Register Team</h2>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Deploy new operational team unit.</p>
                                 </div>
                             </div>
 
@@ -276,14 +323,16 @@ const AdminDashboard = () => {
                                 </button>
                             </form>
                         </div>
-                    ) : (
+                    )}
+
+                    {activeTab === 'accounts' && (
                         <div className="space-y-10">
                             <div className="flex items-center gap-5">
-                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand shadow-xl shadow-brand/5">
+                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand">
                                     <UserPlus size={32} />
                                 </div>
                                 <div>
-                                    <h2 className="text-3xl font-black text-white italic tracking-tighter">PROVISION PERSONNEL</h2>
+                                    <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Members</h2>
                                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Assign identity and access clearance.</p>
                                 </div>
                             </div>
@@ -371,12 +420,90 @@ const AdminDashboard = () => {
                             </form>
                         </div>
                     )}
+
+                    {activeTab === 'management' && (
+                        <div className="space-y-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand">
+                                    <ManagementIcon size={32} />
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Admin Management</h2>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Monitor teams and escalate privileges.</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-12">
+                                {/* Team Progress Section */}
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black text-brand tracking-[0.3em] uppercase italic flex items-center gap-2">
+                                        <TrendingUp size={16} /> Team Progress Monitor
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {allProjects.map(project => (
+                                            <div key={project.id} className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl group/proj hover:border-brand/30 transition-all duration-500">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">{project.teams?.team_name}</p>
+                                                        <p className="text-sm font-black text-white tracking-tight mt-0.5">{project.project_title}</p>
+                                                    </div>
+                                                    <div className="text-[10px] font-black text-brand bg-brand/10 border border-brand/20 px-3 py-1 rounded-full">{project.status || 'ACTIVE'}</div>
+                                                </div>
+                                                <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                                    <div className="bg-brand h-full w-[45%] rounded-full shadow-[0_0_10px_#FFB800]" />
+                                                </div>
+                                                <div className="flex justify-between mt-3">
+                                                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest font-sans">Milestones Met: 2/5</span>
+                                                    <span className="text-[9px] font-bold text-brand uppercase tracking-widest font-sans">45%</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Personnel Escalation Section */}
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black text-brand tracking-[0.3em] uppercase italic flex items-center gap-2">
+                                        <UserCheck size={16} /> Privelege Escalation Center
+                                    </h3>
+                                    <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
+                                        {allProfiles.map(profile => (
+                                            <div key={profile.id} className="p-4 bg-white/[0.01] border border-white/5 rounded-2xl flex items-center justify-between group/user hover:bg-white/[0.02] transition-all">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 group-hover/user:text-white transition-colors">
+                                                        <Users size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-white uppercase italic tracking-tighter">{profile.name || 'Anonymous User'}</p>
+                                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">{profile.role || 'Member'}</p>
+                                                    </div>
+                                                </div>
+                                                {profile.role !== 'Admin' && profile.email !== SUPER_ADMIN_EMAIL && (
+                                                    <button
+                                                        onClick={() => handleGrantAdmin(profile.id, profile.role)}
+                                                        disabled={loading}
+                                                        className="px-4 py-2 bg-brand/5 border border-brand/20 rounded-xl text-[9px] font-black text-brand uppercase tracking-widest hover:bg-brand hover:text-bg-deep transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                                                    >
+                                                        Bestow Admin Access
+                                                    </button>
+                                                )}
+                                                {profile.role === 'Admin' && (
+                                                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                                        <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic">Authorized Admin</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Audit Logs & System Metrics */}
-                <div className="space-y-12">
+                <div className="lg:col-span-4 space-y-12">
                     <div className="glassmorphism rounded-[2.5rem] border border-white/5 p-10 relative overflow-hidden group">
-                        {/* Ambient Glow */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 blur-3xl rounded-full" />
 
                         <div className="flex items-center justify-between mb-10">
@@ -384,37 +511,31 @@ const AdminDashboard = () => {
                                 <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand shadow-xl shadow-brand/5">
                                     <History size={32} />
                                 </div>
-                                <div>
-                                    <h2 className="text-3xl font-black text-white italic tracking-tighter">AUDIT LOGS</h2>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Real-time command stream.</p>
+                                <div className="overflow-hidden">
+                                    <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase truncate">Audit Logs</h2>
+                                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Command stream.</p>
                                 </div>
-                            </div>
-                            <div className="relative group/search">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within/search:text-brand" size={16} />
-                                <input type="text" placeholder="FILTER..." className="bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2 text-[10px] text-white outline-none focus:border-brand/30 transition-all font-black tracking-widest w-32" />
                             </div>
                         </div>
 
-                        <div className="space-y-5 max-h-[450px] overflow-y-auto pr-3 custom-scrollbar">
+                        <div className="space-y-4 max-h-[450px] overflow-y-auto pr-3 custom-scrollbar">
                             {logs.length > 0 ? logs.map(log => (
                                 <div key={log.id} className="p-5 bg-white/[0.01] border border-white/5 rounded-2xl flex items-center gap-5 group/log hover:border-brand/30 transition-all duration-500 cursor-default">
                                     <div className={cn(
-                                        "w-12 h-12 rounded-xl flex items-center justify-center group-hover/log:scale-110 transition-transform duration-500 border",
-                                        log.activity_type.includes('SUCCESS') || log.activity_type.includes('CREATED')
+                                        "w-10 h-10 rounded-xl flex items-center justify-center group-hover/log:scale-110 transition-transform duration-500 border shrink-0",
+                                        log.activity_type.includes('SUCCESS') || log.activity_type.includes('CREATED') || log.activity_type.includes('GRANTED')
                                             ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                                             : 'bg-red-500/10 text-red-500 border-red-500/20'
                                     )}>
-                                        <Activity size={20} />
+                                        <Activity size={16} />
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-xs font-black text-white tracking-widest uppercase italic">{log.activity_type.replace(/_/g, ' ')}</p>
-                                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                    <div className="flex-1 overflow-hidden">
+                                        <p className="text-[10px] font-black text-white tracking-widest uppercase italic truncate">{log.activity_type.replace(/_/g, ' ')}</p>
+                                        <div className="flex items-center gap-2 mt-1 text-[8px] text-slate-500 font-bold uppercase tracking-wider">
                                             <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
-                                            <span className="w-1 h-1 bg-slate-800 rounded-full" />
-                                            <span className="text-brand/70">{log.profiles?.name || 'SYSTEM CORE'}</span>
+                                            <span className="text-brand/70 truncate">- {log.profiles?.name || 'SYSTEM CORE'}</span>
                                         </div>
                                     </div>
-                                    <ChevronRight size={14} className="text-slate-800 group-hover/log:text-brand transition-colors" />
                                 </div>
                             )) : (
                                 <div className="text-center py-16 opacity-30">
@@ -425,19 +546,19 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="glassmorphism p-10 rounded-[2.5rem] border border-white/5 group hover:border-brand/20 transition-all">
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 italic">Active Units</p>
+                    <div className="grid grid-cols-1 gap-6">
+                        <div className="glassmorphism p-8 rounded-[2rem] border border-white/5 group hover:border-brand/20 transition-all">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2 italic">Active Units</p>
                             <div className="flex items-end gap-3">
-                                <p className="text-5xl font-black text-white italic tracking-tighter leading-none">{existingTeams.length}</p>
-                                <Users size={24} className="text-brand mb-1 animate-bounce" />
+                                <p className="text-4xl font-black text-white italic tracking-tighter leading-none">{existingTeams.length}</p>
+                                <Users size={20} className="text-brand mb-1 animate-bounce" />
                             </div>
                         </div>
-                        <div className="glassmorphism p-10 rounded-[2.5rem] border border-white/5 group hover:border-brand/20 transition-all">
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 italic">System Health</p>
+                        <div className="glassmorphism p-8 rounded-[2rem] border border-white/5 group hover:border-brand/20 transition-all">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2 italic">Workforce Presence</p>
                             <div className="flex items-end gap-3">
-                                <p className="text-5xl font-black text-white italic tracking-tighter leading-none">99 <span className="text-2xl ml-[-10px]">%</span></p>
-                                <History size={24} className="text-emerald-500 mb-1" />
+                                <p className="text-4xl font-black text-white italic tracking-tighter leading-none">{allProfiles.length}</p>
+                                <ShieldCheck size={20} className="text-emerald-500 mb-1" />
                             </div>
                         </div>
                     </div>
