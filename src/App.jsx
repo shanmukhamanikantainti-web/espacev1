@@ -41,41 +41,36 @@ function App() {
   // Global listener for Ctrl + Q
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.ctrlKey && e.key === 'q') {
-        const SUPER_ADMIN_EMAIL = import.meta.env.VITE_SUPER_ADMIN_EMAIL;
-        if (user?.email === SUPER_ADMIN_EMAIL) {
-          setIsAdminGateOpen(true);
-        }
+      if (e.ctrlKey && e.key.toLowerCase() === 'q') {
+        setIsAdminGateOpen(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [user]);
+  }, []);
 
   return (
-    <AuthProvider>
-      <Router>
-        <AdminAccessGate
-          isOpen={isAdminGateOpen}
-          onClose={() => setIsAdminGateOpen(false)}
-        />
-        <Routes>
-          <Route path="/login" element={<Login />} />
+    <Router>
+      <AdminAccessGate
+        isOpen={isAdminGateOpen}
+        onClose={() => setIsAdminGateOpen(false)}
+      />
+      <Routes>
+        <Route path="/login" element={<Login />} />
 
-          {/* Protected Routes inside DashboardLayout */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/workspace" element={<FileWorkspace />} />
-              <Route path="/meet" element={<MeetSpace />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-            </Route>
+        {/* Protected Routes inside DashboardLayout */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/workspace" element={<FileWorkspace />} />
+            <Route path="/meet" element={<MeetSpace />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Route>
+        </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
