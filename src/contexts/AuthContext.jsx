@@ -57,17 +57,10 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const signInWithGoogle = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin,
-                // Enforce domain if possible via Google OAuth parameters, 
-                // but we'll also check it in our code.
-                queryParams: {
-                    hd: 'vishnu.edu.in'
-                }
-            }
+    const signInWithEmail = async (email, password) => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password
         });
         if (error) throw error;
     };
@@ -85,7 +78,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, profile, loading, manualAdmin, updateManualAdmin, signInWithGoogle, signOut }}>
+        <AuthContext.Provider value={{ user, profile, loading, manualAdmin, updateManualAdmin, signInWithEmail, signOut }}>
             {children}
         </AuthContext.Provider>
     );
