@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
     Users, Plus, ShieldCheck, Mail, Lock, UserPlus,
     Briefcase, FileText, Layout, Trash2, Save, X,
-    Activity, ChevronRight, CheckCircle2, AlertCircle
+    Activity, ChevronRight, CheckCircle2, AlertCircle,
+    Command, Sparkles, Database, History, Search
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { cn } from '../lib/utils';
 
 const AdminDashboard = () => {
-    const { user, profile } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('teams'); // 'teams' or 'accounts'
@@ -74,17 +76,15 @@ const AdminDashboard = () => {
         await supabase.from('activity_logs').insert({
             activity_type: type,
             user_id: user?.id,
-            // We can potentially add more fields if needed
         });
     };
 
     const handleCreateTeam = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setStatus({ type: 'info', msg: 'Creating team and project...' });
+        setStatus({ type: 'info', msg: 'INITIALIZING TEAM CORE...' });
 
         try {
-            // 1. Create Team
             const { data: team, error: teamErr } = await supabase
                 .from('teams')
                 .insert({ team_name: teamData.name })
@@ -93,7 +93,6 @@ const AdminDashboard = () => {
 
             if (teamErr) throw teamErr;
 
-            // 2. Create Project
             const { error: projErr } = await supabase
                 .from('projects')
                 .insert({
@@ -105,11 +104,11 @@ const AdminDashboard = () => {
             if (projErr) throw projErr;
 
             await logActivity('TEAM_CREATED', { team_id: team.id, team_name: teamData.name });
-            setStatus({ type: 'success', msg: 'Team and Project created successfully!' });
+            setStatus({ type: 'success', msg: 'STRATEGIC TEAM ASSET CREATED SUCCESSFULLY' });
             setTeamData({ name: '', project_title: '', problem_statement: '', members: [{ name: '', role: 'Member', position: 'Developer' }] });
             fetchTeams();
         } catch (err) {
-            setStatus({ type: 'error', msg: err.message });
+            setStatus({ type: 'error', msg: err.message.toUpperCase() });
         } finally {
             setLoading(false);
         }
@@ -118,13 +117,9 @@ const AdminDashboard = () => {
     const handleCreateAccount = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setStatus({ type: 'info', msg: 'Provisioning account...' });
+        setStatus({ type: 'info', msg: 'PROVISIONING CREDENTIALS...' });
 
         try {
-            // NOTE: In a production environment, you'd use a service key or edge function
-            // to create users without them being logged in as that user.
-            // For this flow, we'll use signUp which might trigger email confirmation 
-            // depending on Supabase settings.
             const { data, error: authErr } = await supabase.auth.signUp({
                 email: accountData.email,
                 password: accountData.password,
@@ -138,8 +133,6 @@ const AdminDashboard = () => {
 
             if (authErr) throw authErr;
 
-            // Update profile with role and team_id if necessary
-            // (Though handle_new_user trigger should handle profile creation)
             if (accountData.team_id && data.user) {
                 await supabase
                     .from('profiles')
@@ -152,255 +145,300 @@ const AdminDashboard = () => {
             }
 
             await logActivity('ACCOUNT_CREATED', { email: accountData.email, role: accountData.role });
-            setStatus({ type: 'success', msg: 'Account created! User can now login with provided credentials.' });
+            setStatus({ type: 'success', msg: 'IDENTITY PROVISIONED. USER CAN NOW ACCESS WORKSPACE.' });
             setAccountData({ name: '', email: '', password: '', role: 'Member', team_id: '' });
         } catch (err) {
-            setStatus({ type: 'error', msg: err.message });
+            setStatus({ type: 'error', msg: err.message.toUpperCase() });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-700 pb-20">
-            <div className="flex justify-between items-end">
+        <div className="space-y-12 animate-in fade-in slide-in-from-top-8 duration-1000 pb-20">
+            {/* Header / Command Center */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-8">
                 <div>
-                    <p className="text-blue-400 font-bold tracking-widest text-xs uppercase mb-2 italic flex items-center gap-2">
-                        <ShieldCheck size={14} /> Higher-Level Command
-                    </p>
-                    <h1 className="text-4xl font-black bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent italic">
-                        e-Space Admin
+                    <div className="flex items-center gap-3 text-brand mb-3">
+                        <Command size={16} className="animate-pulse" />
+                        <p className="font-black tracking-[0.4em] text-[10px] uppercase italic">Central Administrative Command</p>
+                    </div>
+                    <h1 className="text-6xl font-black gold-text-gradient italic tracking-tighter leading-none">
+                        E-SPACE COMMAND
                     </h1>
                 </div>
-                <div className="flex bg-slate-900/50 p-1 rounded-2xl border border-slate-800">
+
+                <div className="flex bg-white/[0.03] p-1.5 rounded-2xl border border-white/5 shadow-2xl">
                     <button
                         onClick={() => setActiveTab('teams')}
-                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'teams' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                        className={cn(
+                            "px-8 py-3 rounded-xl text-xs font-black transition-all duration-500 flex items-center gap-3 tracking-widest uppercase",
+                            activeTab === 'teams'
+                                ? "bg-brand text-bg-deep shadow-lg shadow-brand/20 italic"
+                                : "text-slate-500 hover:text-slate-200"
+                        )}
                     >
-                        <Layout size={16} /> Teams
+                        <Layout size={16} /> Team Registry
                     </button>
                     <button
                         onClick={() => setActiveTab('accounts')}
-                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'accounts' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                        className={cn(
+                            "px-8 py-3 rounded-xl text-xs font-black transition-all duration-500 flex items-center gap-3 tracking-widest uppercase",
+                            activeTab === 'accounts'
+                                ? "bg-brand text-bg-deep shadow-lg shadow-brand/20 italic"
+                                : "text-slate-500 hover:text-slate-200"
+                        )}
                     >
-                        <UserPlus size={16} /> Accounts
+                        <UserPlus size={16} /> Personnel
                     </button>
                 </div>
             </div>
 
+            {/* Status Feedback */}
             {status.msg && (
-                <div className={`p-4 rounded-2xl flex items-center gap-3 border animate-in slide-in-from-left-4 ${status.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                    status.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                        'bg-blue-500/10 border-blue-500/20 text-blue-400'
-                    }`}>
-                    {status.type === 'error' ? <AlertCircle size={20} /> : <CheckCircle2 size={20} />}
-                    <p className="text-sm font-bold">{status.msg}</p>
-                    <button onClick={() => setStatus({ type: '', msg: '' })} className="ml-auto opacity-50 hover:opacity-100 transition-opacity">
-                        <X size={16} />
+                <div className={cn(
+                    "p-6 rounded-[1.5rem] flex items-center gap-5 border-l-4 animate-in slide-in-from-left-8 duration-500 glassmorphism",
+                    status.type === 'error' ? 'border-red-500 bg-red-500/5 text-red-500' :
+                        status.type === 'success' ? 'border-brand bg-brand/5 text-brand' :
+                            'border-blue-500 bg-blue-500/5 text-blue-500'
+                )}>
+                    <div className="p-2 bg-white/5 rounded-lg shrink-0">
+                        {status.type === 'error' ? <AlertCircle size={22} /> : <CheckCircle2 size={22} />}
+                    </div>
+                    <p className="text-xs font-black tracking-widest uppercase italic">{status.msg}</p>
+                    <button onClick={() => setStatus({ type: '', msg: '' })} className="ml-auto opacity-30 hover:opacity-100 transition-opacity p-2">
+                        <X size={20} />
                     </button>
                 </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Manual Team Creation */}
-                {activeTab === 'teams' && (
-                    <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 space-y-8">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-400">
-                                <Plus size={24} />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-black text-white italic">Create New Team</h2>
-                                <p className="text-xs text-slate-500 font-sans">Initialize team, project, and primary details.</p>
-                            </div>
-                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                {/* Dynamic Management Forms */}
+                <div className="glassmorphism rounded-[2.5rem] border border-white/5 p-10 relative overflow-hidden group">
+                    {/* Ambient Glow */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 blur-3xl rounded-full group-hover:bg-brand/10 transition-colors" />
 
-                        <form onSubmit={handleCreateTeam} className="space-y-6">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Team Name</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        placeholder="e.g. Nexus Prime"
-                                        value={teamData.name}
-                                        onChange={(e) => setTeamData({ ...teamData, name: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-4 py-3 text-white focus:border-blue-500/50 outline-none transition-all text-sm"
-                                    />
+                    {activeTab === 'teams' ? (
+                        <div className="space-y-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand shadow-xl shadow-brand/5">
+                                    <Plus size={32} />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Project Title</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        placeholder="e.g. AI-Powered Smart Logistics"
-                                        value={teamData.project_title}
-                                        onChange={(e) => setTeamData({ ...teamData, project_title: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-4 py-3 text-white focus:border-blue-500/50 outline-none transition-all text-sm"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Problem Statement</label>
-                                    <textarea
-                                        rows="3"
-                                        placeholder="Briefly describe the challenge being addressed..."
-                                        value={teamData.problem_statement}
-                                        onChange={(e) => setTeamData({ ...teamData, problem_statement: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-4 py-3 text-white focus:border-blue-500/50 outline-none transition-all text-sm resize-none"
-                                    />
+                                <div>
+                                    <h2 className="text-3xl font-black text-white italic tracking-tighter">CREATE NEW TEAM</h2>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Initialize workspace team architecture.</p>
                                 </div>
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black italic tracking-tight transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50"
-                            >
-                                {loading ? 'Initializing...' : 'Confirm Team Creation'}
-                            </button>
-                        </form>
-                    </div>
-                )}
-
-                {/* Manual Account Creation */}
-                {activeTab === 'accounts' && (
-                    <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 space-y-8">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-emerald-600/10 rounded-2xl flex items-center justify-center text-emerald-400">
-                                <UserPlus size={24} />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-black text-white italic">Manually Provision Account</h2>
-                                <p className="text-xs text-slate-500 font-sans">Create credentials and assign roles/teams.</p>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handleCreateAccount} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                                    <div className="relative group">
-                                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400" size={16} />
+                            <form onSubmit={handleCreateTeam} className="space-y-8">
+                                <div className="space-y-6">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Team Designation</label>
                                         <input
                                             required
                                             type="text"
-                                            value={accountData.name}
-                                            onChange={(e) => setAccountData({ ...accountData, name: e.target.value })}
-                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3 pl-12 pr-4 text-white focus:border-emerald-500/50 outline-none transition-all text-sm"
+                                            placeholder="e.g. ALPHA_SIX"
+                                            value={teamData.name}
+                                            onChange={(e) => setTeamData({ ...teamData, name: e.target.value })}
+                                            className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold tracking-tight"
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Strategic Project Title</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            placeholder="e.g. QUANTUM_ANALYTICS"
+                                            value={teamData.project_title}
+                                            onChange={(e) => setTeamData({ ...teamData, project_title: e.target.value })}
+                                            className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold tracking-tight"
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Problem Objective</label>
+                                        <textarea
+                                            rows="4"
+                                            placeholder="Define the strategic challenge..."
+                                            value={teamData.problem_statement}
+                                            onChange={(e) => setTeamData({ ...teamData, problem_statement: e.target.value })}
+                                            className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold tracking-tight resize-none"
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
-                                    <div className="relative group">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400" size={16} />
-                                        <input
-                                            required
-                                            type="email"
-                                            value={accountData.email}
-                                            onChange={(e) => setAccountData({ ...accountData, email: e.target.value })}
-                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3 pl-12 pr-4 text-white focus:border-emerald-500/50 outline-none transition-all text-sm"
-                                        />
-                                    </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-brand hover:bg-brand-light text-bg-deep py-5 rounded-2xl font-black italic tracking-tighter transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3 disabled:opacity-50 group/btn"
+                                >
+                                    {loading ? 'INITIALIZING...' : 'CONFIRM TEAM DEPLOYMENT'}
+                                    <Sparkles size={18} className="group-hover/btn:rotate-12 transition-transform" />
+                                </button>
+                            </form>
+                        </div>
+                    ) : (
+                        <div className="space-y-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand shadow-xl shadow-brand/5">
+                                    <UserPlus size={32} />
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-black text-white italic tracking-tighter">PROVISION PERSONNEL</h2>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Assign identity and access clearance.</p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Password</label>
-                                    <div className="relative group">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400" size={16} />
-                                        <input
-                                            required
-                                            type="password"
-                                            value={accountData.password}
-                                            onChange={(e) => setAccountData({ ...accountData, password: e.target.value })}
-                                            className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-3 pl-12 pr-4 text-white focus:border-emerald-500/50 outline-none transition-all text-sm"
-                                        />
+                            <form onSubmit={handleCreateAccount} className="space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Personnel Name</label>
+                                        <div className="relative group">
+                                            <Users className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-brand transition-colors" size={18} />
+                                            <input
+                                                required
+                                                type="text"
+                                                value={accountData.name}
+                                                onChange={(e) => setAccountData({ ...accountData, name: e.target.value })}
+                                                className="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-4 pl-14 pr-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Institutional Email</label>
+                                        <div className="relative group">
+                                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-brand transition-colors" size={18} />
+                                            <input
+                                                required
+                                                type="email"
+                                                value={accountData.email}
+                                                onChange={(e) => setAccountData({ ...accountData, email: e.target.value })}
+                                                className="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-4 pl-14 pr-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Assign Role</label>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Access Passphrase</label>
+                                        <div className="relative group">
+                                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-brand transition-colors" size={18} />
+                                            <input
+                                                required
+                                                type="password"
+                                                value={accountData.password}
+                                                onChange={(e) => setAccountData({ ...accountData, password: e.target.value })}
+                                                className="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-4 pl-14 pr-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Role Designation</label>
+                                        <select
+                                            value={accountData.role}
+                                            onChange={(e) => setAccountData({ ...accountData, role: e.target.value })}
+                                            className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold appearance-none cursor-pointer"
+                                        >
+                                            <option value="Member">TEAM MEMBER</option>
+                                            <option value="Leader">TEAM LEADER</option>
+                                            <option value="Admin">SYSTEM ADMIN</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Assigned Operational Unit</label>
                                     <select
-                                        value={accountData.role}
-                                        onChange={(e) => setAccountData({ ...accountData, role: e.target.value })}
-                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-4 py-3 text-white focus:border-emerald-500/50 outline-none transition-all text-sm appearance-none"
+                                        value={accountData.team_id}
+                                        onChange={(e) => setAccountData({ ...accountData, team_id: e.target.value })}
+                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold appearance-none cursor-pointer"
                                     >
-                                        <option value="Member">Team Member</option>
-                                        <option value="Leader">Team Leader</option>
-                                        <option value="Admin">Admin</option>
+                                        <option value="">STANDALONE PERSONNEL</option>
+                                        {existingTeams.map(team => (
+                                            <option key={team.id} value={team.id}>{team.team_name.toUpperCase()}</option>
+                                        ))}
                                     </select>
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Assign to Team</label>
-                                <select
-                                    value={accountData.team_id}
-                                    onChange={(e) => setAccountData({ ...accountData, team_id: e.target.value })}
-                                    className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl px-4 py-3 text-white focus:border-emerald-500/50 outline-none transition-all text-sm appearance-none"
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-brand hover:bg-brand-light text-bg-deep py-5 rounded-2xl font-black italic tracking-tighter transition-all shadow-xl shadow-brand/20 flex items-center justify-center gap-3 disabled:opacity-50"
                                 >
-                                    <option value="">No Team Assigned</option>
-                                    {existingTeams.map(team => (
-                                        <option key={team.id} value={team.id}>{team.team_name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                                    {loading ? 'PROVISIONING...' : 'AUTHORIZE IDENTITY ACCESS'}
+                                    <ShieldCheck size={20} />
+                                </button>
+                            </form>
+                        </div>
+                    )}
+                </div>
 
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-2xl font-black italic tracking-tight transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
-                            >
-                                {loading ? 'Provisioning...' : 'Confirm Account Provisioning'}
-                            </button>
-                        </form>
-                    </div>
-                )}
+                {/* Audit Logs & System Metrics */}
+                <div className="space-y-12">
+                    <div className="glassmorphism rounded-[2.5rem] border border-white/5 p-10 relative overflow-hidden group">
+                        {/* Ambient Glow */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 blur-3xl rounded-full" />
 
-                {/* Activity Feed & Stats */}
-                <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 space-y-8">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-amber-600/10 rounded-2xl flex items-center justify-center text-amber-400">
-                                <Activity size={24} />
+                        <div className="flex items-center justify-between mb-10">
+                            <div className="flex items-center gap-5">
+                                <div className="w-16 h-16 bg-brand/10 border border-brand/20 rounded-2xl flex items-center justify-center text-brand shadow-xl shadow-brand/5">
+                                    <History size={32} />
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-black text-white italic tracking-tighter">AUDIT LOGS</h2>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Real-time command stream.</p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-xl font-black text-white italic">Institutional Activity</h2>
-                                <p className="text-xs text-slate-500 font-sans">Real-time log of administrative actions.</p>
+                            <div className="relative group/search">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within/search:text-brand" size={16} />
+                                <input type="text" placeholder="FILTER..." className="bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-2 text-[10px] text-white outline-none focus:border-brand/30 transition-all font-black tracking-widest w-32" />
                             </div>
+                        </div>
+
+                        <div className="space-y-5 max-h-[450px] overflow-y-auto pr-3 custom-scrollbar">
+                            {logs.length > 0 ? logs.map(log => (
+                                <div key={log.id} className="p-5 bg-white/[0.01] border border-white/5 rounded-2xl flex items-center gap-5 group/log hover:border-brand/30 transition-all duration-500 cursor-default">
+                                    <div className={cn(
+                                        "w-12 h-12 rounded-xl flex items-center justify-center group-hover/log:scale-110 transition-transform duration-500 border",
+                                        log.activity_type.includes('SUCCESS') || log.activity_type.includes('CREATED')
+                                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                            : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                    )}>
+                                        <Activity size={20} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-xs font-black text-white tracking-widest uppercase italic">{log.activity_type.replace(/_/g, ' ')}</p>
+                                        <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                            <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                                            <span className="w-1 h-1 bg-slate-800 rounded-full" />
+                                            <span className="text-brand/70">{log.profiles?.name || 'SYSTEM CORE'}</span>
+                                        </div>
+                                    </div>
+                                    <ChevronRight size={14} className="text-slate-800 group-hover/log:text-brand transition-colors" />
+                                </div>
+                            )) : (
+                                <div className="text-center py-16 opacity-30">
+                                    <Database size={48} className="mx-auto mb-4 text-slate-600" />
+                                    <p className="text-xs font-black uppercase tracking-[0.4em]">Zero Protocol Records</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                        {logs.length > 0 ? logs.map(log => (
-                            <div key={log.id} className="p-4 bg-slate-950/50 border border-slate-800 rounded-2xl flex items-center gap-4 group hover:border-blue-500/30 transition-all">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ${log.activity_type.includes('SUCCESS') || log.activity_type.includes('CREATED') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
-                                    }`}>
-                                    <Activity size={18} />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-xs font-bold text-white tracking-tight">{log.activity_type.replace(/_/g, ' ')}</p>
-                                    <p className="text-[10px] text-slate-500 font-sans">
-                                        {new Date(log.timestamp).toLocaleString()} {log.profiles?.name ? `by ${log.profiles.name}` : ''}
-                                    </p>
-                                </div>
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="glassmorphism p-10 rounded-[2.5rem] border border-white/5 group hover:border-brand/20 transition-all">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 italic">Active Units</p>
+                            <div className="flex items-end gap-3">
+                                <p className="text-5xl font-black text-white italic tracking-tighter leading-none">{existingTeams.length}</p>
+                                <Users size={24} className="text-brand mb-1 animate-bounce" />
                             </div>
-                        )) : (
-                            <div className="text-center py-8">
-                                <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">No Activity Records Found</p>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-slate-950/50 p-6 rounded-2xl border border-slate-800">
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Teams</p>
-                            <p className="text-2xl font-black text-white italic">{existingTeams.length}</p>
                         </div>
-                        <div className="bg-slate-950/50 p-6 rounded-2xl border border-slate-800">
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active Staff</p>
-                            <p className="text-2xl font-black text-white italic">--</p>
+                        <div className="glassmorphism p-10 rounded-[2.5rem] border border-white/5 group hover:border-brand/20 transition-all">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 italic">System Health</p>
+                            <div className="flex items-end gap-3">
+                                <p className="text-5xl font-black text-white italic tracking-tighter leading-none">99 <span className="text-2xl ml-[-10px]">%</span></p>
+                                <History size={24} className="text-emerald-500 mb-1" />
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -8,7 +8,11 @@ import {
     ExternalLink,
     Plus,
     RefreshCw,
-    Search
+    Search,
+    ChevronRight,
+    FileText,
+    Database,
+    Cloud
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -20,59 +24,70 @@ const FileWorkspace = () => {
     ]);
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
-            <div className="flex justify-between items-end">
+        <div className="space-y-12 animate-in fade-in slide-in-from-right-8 duration-1000">
+            {/* Command Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-white/5 pb-8">
                 <div>
-                    <p className="text-emerald-400 font-bold tracking-widest text-xs uppercase mb-2">Workspace / Files</p>
-                    <h1 className="text-4xl font-black bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent italic">
-                        Centralized Storage
+                    <div className="flex items-center gap-3 text-brand mb-3">
+                        <Database size={16} />
+                        <p className="font-black tracking-[0.4em] text-[10px] uppercase italic">Strategic Data Repository</p>
+                    </div>
+                    <h1 className="text-6xl font-black gold-text-gradient italic tracking-tighter leading-none">
+                        WORKSPACE STORAGE
                     </h1>
                 </div>
                 <div className="flex gap-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-brand transition-colors" size={18} />
                         <input
                             type="text"
-                            placeholder="Search files..."
-                            className="bg-slate-900/50 border border-slate-800 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-300 focus:outline-none focus:border-blue-500/50 transition-all w-64"
+                            placeholder="SEARCH PROTOCOLS..."
+                            className="bg-white/[0.02] border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-[10px] text-white font-black tracking-widest focus:border-brand/40 outline-none transition-all w-72 uppercase"
                         />
                     </div>
-                    <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20">
-                        <Upload size={18} /> Upload File
+                    <button className="flex items-center gap-3 bg-brand hover:bg-brand-light text-bg-deep px-8 py-4 rounded-2xl font-black italic tracking-tighter transition-all shadow-xl shadow-brand/20 active:scale-[0.98]">
+                        <Upload size={18} /> UPLOAD ASSET
                     </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* File List */}
-                <div className="lg:col-span-2 space-y-4">
-                    <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-3xl overflow-hidden">
-                        <table className="w-full text-left">
-                            <thead className="bg-slate-800/50 border-b border-slate-800">
-                                <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Name</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Size</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Date</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Actions</th>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {/* Tactical File Registry */}
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="glassmorphism rounded-[2.5rem] border border-white/5 overflow-hidden">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white/[0.03] border-b border-white/5">
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">Designation</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">Payload</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">Timestamp</th>
+                                    <th className="px-8 py-6 text-right text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">Operations</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/50">
+                            <tbody className="divide-y divide-white/5">
                                 {files.map((file) => (
-                                    <tr key={file.id} className="hover:bg-slate-800/30 transition-all group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center text-blue-400">
-                                                    <File size={20} />
+                                    <tr key={file.id} className="hover:bg-white/[0.02] transition-all group cursor-default">
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-5">
+                                                <div className="w-12 h-12 bg-brand/5 border border-brand/10 rounded-xl flex items-center justify-center text-brand group-hover:scale-110 transition-transform duration-500">
+                                                    <FileText size={22} />
                                                 </div>
-                                                <span className="text-sm font-medium text-slate-200">{file.name}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-black text-white italic tracking-tight uppercase">{file.name}</span>
+                                                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{file.type} FORMAT</span>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-400 font-sans">{file.size}</td>
-                                        <td className="px-6 py-4 text-sm text-slate-400 font-sans">{file.date}</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                                <button className="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white"><Download size={18} /></button>
-                                                <button className="p-2 hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-400"><Trash2 size={18} /></button>
+                                        <td className="px-8 py-6 text-[10px] font-black text-slate-400 tracking-widest">{file.size}</td>
+                                        <td className="px-8 py-6 text-[10px] font-black text-slate-400 tracking-widest">{file.date}</td>
+                                        <td className="px-8 py-6 text-right">
+                                            <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                                <button className="p-3 bg-white/5 hover:bg-brand/10 rounded-xl text-slate-500 hover:text-brand border border-transparent hover:border-brand/20 transition-all">
+                                                    <Download size={18} />
+                                                </button>
+                                                <button className="p-3 bg-white/5 hover:bg-red-500/10 rounded-xl text-slate-500 hover:text-red-500 border border-transparent hover:border-red-500/20 transition-all">
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -82,52 +97,64 @@ const FileWorkspace = () => {
                     </div>
                 </div>
 
-                {/* GitHub Integration Sidebar Card */}
-                <div className="space-y-6">
-                    <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <Github size={24} className="text-white" /> GitHub Sync
+                {/* External Sync Architecture */}
+                <div className="space-y-10">
+                    <div className="glassmorphism rounded-[2.5rem] border border-white/5 p-10 relative overflow-hidden group">
+                        {/* Background Sync Glow */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand/5 blur-3xl group-hover:bg-brand/10 transition-colors" />
+
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-2xl font-black text-white italic flex items-center gap-4 tracking-tighter">
+                                <Github size={28} className="text-white" /> GITHUB SYNC
                             </h2>
-                            <button className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-400 transition-all">
-                                <RefreshCw size={18} />
+                            <button className="p-3 bg-white/5 hover:bg-brand/10 rounded-xl text-slate-500 hover:text-brand transition-all border border-white/5 group/sync">
+                                <RefreshCw size={18} className="group-hover/sync:rotate-180 transition-transform duration-500" />
                             </button>
                         </div>
 
-                        <div className="space-y-6">
-                            <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700">
+                        <div className="space-y-8">
+                            <div className="p-6 bg-white/[0.02] rounded-[1.5rem] border border-white/10 group-hover:border-brand/20 transition-all duration-500">
                                 <div className="flex items-center justify-between mb-4">
-                                    <p className="text-xs font-bold text-slate-500 tracking-widest uppercase">Connected Repository</p>
-                                    <ExternalLink size={14} className="text-blue-400" />
+                                    <p className="text-[10px] font-black text-slate-500 tracking-[0.2em] uppercase">Operational Unit Repository</p>
+                                    <ExternalLink size={14} className="text-brand animate-pulse" />
                                 </div>
-                                <p className="text-sm font-bold text-white mb-1">vithack/e-space-platform</p>
-                                <p className="text-[10px] text-slate-500">Last commit: 12 minutes ago</p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                                <div className="bg-slate-800/20 p-4 rounded-2xl border border-slate-700/50">
-                                    <p className="text-2xl font-black text-white">142</p>
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Commits</p>
-                                </div>
-                                <div className="bg-slate-800/20 p-4 rounded-2xl border border-slate-700/50">
-                                    <p className="text-2xl font-black text-white">5</p>
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Contributors</p>
+                                <p className="text-md font-black text-white mb-2 tracking-tight italic">ECELL_VITB / E-SPACE_CORE</p>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Last Sync: 12m Ago</p>
                                 </div>
                             </div>
 
-                            <button className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2">
-                                Connect Repository
+                            <div className="grid grid-cols-2 gap-6 text-center">
+                                <div className="glassmorphism p-6 rounded-[1.5rem] border border-white/5 group-hover:border-white/10 transition-colors">
+                                    <p className="text-3xl font-black text-white italic tracking-tighter">142</p>
+                                    <p className="text-[10px] text-brand/70 font-black uppercase tracking-[0.2em] mt-1">Commits</p>
+                                </div>
+                                <div className="glassmorphism p-6 rounded-[1.5rem] border border-white/5 group-hover:border-white/10 transition-colors">
+                                    <p className="text-3xl font-black text-white italic tracking-tighter">05</p>
+                                    <p className="text-[10px] text-brand/70 font-black uppercase tracking-[0.2em] mt-1">Personnel</p>
+                                </div>
+                            </div>
+
+                            <button className="w-full py-5 bg-white/[0.03] hover:bg-white/[0.08] text-white border border-white/10 rounded-[1.5rem] font-black italic tracking-tighter transition-all flex items-center justify-center gap-3 active:scale-[0.98]">
+                                CONNECT EXTERNAL ASSET
+                                <ChevronRight size={18} />
                             </button>
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-xl border border-blue-500/20 p-8 rounded-3xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Plus size={80} />
+                    {/* Storage Allocation Alert */}
+                    <div className="bg-brand/10 border border-brand/20 p-10 rounded-[2.5rem] relative overflow-hidden group hover:border-brand/40 transition-all duration-700">
+                        <div className="absolute top-[-20%] right-[-10%] p-4 opacity-10 group-hover:rotate-12 transition-transform duration-1000">
+                            <Cloud size={120} />
                         </div>
-                        <h3 className="text-lg font-bold text-white mb-2">Upgrade Storage?</h3>
-                        <p className="text-sm text-slate-400 mb-4">You are using 14.2 MB of your 50 MB institucional allowance.</p>
-                        <button className="text-blue-400 font-bold text-sm hover:underline">Request more space →</button>
+                        <h3 className="text-xl font-black text-brand italic mb-3 tracking-tighter leading-none">ALLOCATION UPGRADE</h3>
+                        <p className="text-xs font-bold font-poppets text-brand/70 mb-6 uppercase tracking-wide leading-relaxed">
+                            Utilizing <span className="text-white font-black">14.2 MB</span> of standard <span className="text-white font-black">50 MB</span> institutional quota.
+                        </p>
+                        <button className="text-brand font-black text-[10px] tracking-[0.2em] uppercase hover:underline decoration-brand decoration-2 underline-offset-8 flex items-center gap-2">
+                            REQUEST QUOTA EXPANSION <ChevronRight size={14} />
+                        </button>
                     </div>
                 </div>
             </div>

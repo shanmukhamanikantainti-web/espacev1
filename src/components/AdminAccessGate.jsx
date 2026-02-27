@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldAlert, KeyRound, ArrowRight, Mail, ChevronLeft, ShieldCheck } from 'lucide-react';
+import { X, ShieldAlert, KeyRound, ArrowRight, Mail, ChevronLeft, ShieldCheck, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,7 +26,6 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
     }, [isOpen]);
 
     const logAttempt = async (success, type) => {
-        // Non-blocking log attempt to prevent hanging UI
         supabase.from('activity_logs').insert({
             activity_type: type,
             user_id: user?.id,
@@ -72,12 +71,15 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-            <div className="w-full max-w-md glassmorphism border border-slate-800 rounded-3xl overflow-hidden animate-in fade-in zoom-in duration-300">
-                <div className="relative p-8">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-bg-deep/90 backdrop-blur-md">
+            <div className="w-full max-w-md glassmorphism border border-white/10 rounded-[2.5rem] overflow-hidden animate-in fade-in zoom-in duration-500 relative">
+                {/* Background Glow */}
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-brand/10 blur-[80px] rounded-full" />
+
+                <div className="relative p-10">
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white transition-colors"
+                        className="absolute top-6 right-6 p-2 text-slate-500 hover:text-brand transition-colors rounded-xl hover:bg-white/5"
                     >
                         <X size={20} />
                     </button>
@@ -85,45 +87,45 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
                     {step === 2 && (
                         <button
                             onClick={() => setStep(1)}
-                            className="absolute top-4 left-4 p-2 text-slate-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
+                            className="absolute top-6 left-6 p-2 text-slate-500 hover:text-brand transition-colors flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/5 group"
                         >
-                            <ChevronLeft size={16} /> Back
+                            <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" /> Back
                         </button>
                     )}
 
-                    <div className="flex flex-col items-center text-center mb-8">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${step === 1 ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                            {step === 1 ? <ShieldAlert size={32} /> : <ShieldCheck size={32} />}
+                    <div className="flex flex-col items-center text-center mb-10 mt-4">
+                        <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 transition-all duration-700 shadow-2xl ${step === 1 ? 'bg-brand/10 text-brand border border-brand/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+                            {step === 1 ? <Lock size={32} /> : <ShieldCheck size={32} />}
                         </div>
-                        <h2 className="text-2xl font-black text-white italic mb-2 tracking-tight">
-                            {step === 1 ? 'Identity Check' : 'Security Clearance'}
+                        <h2 className="text-3xl font-black text-white italic mb-3 tracking-tighter">
+                            {step === 1 ? 'IDENTITY CHECK' : 'SECURITY CLEARANCE'}
                         </h2>
-                        <p className="text-slate-400 text-sm font-sans px-4">
+                        <p className="text-slate-400 text-xs font-bold font-poppets leading-relaxed px-4 uppercase tracking-wide">
                             {step === 1
-                                ? 'Please enter the Super Admin email to initiate the verification process.'
-                                : 'Identity confirmed. Now enter the high-level security code.'}
+                                ? 'Authorize access via Super Admin credentials.'
+                                : 'Verified. Enter secondary layer security code.'}
                         </p>
                     </div>
 
                     {step === 1 ? (
-                        <form onSubmit={handleEmailSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Admin Identity</label>
+                        <form onSubmit={handleEmailSubmit} className="space-y-8">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Admin Identity</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 transition-colors group-focus-within:text-blue-400">
+                                    <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-600 transition-colors group-focus-within:text-brand">
                                         <Mail size={18} />
                                     </div>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="Enter Super Admin Email"
+                                        placeholder="institutional-admin@example.com"
                                         required
-                                        className="w-full bg-slate-900/50 border border-slate-800 focus:border-blue-500/50 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-700 outline-none transition-all text-sm font-bold"
+                                        className="w-full bg-white/[0.02] border border-white/10 focus:border-brand/40 rounded-2xl py-5 pl-14 pr-4 text-white placeholder:text-slate-700 outline-none transition-all text-sm font-bold tracking-tight"
                                     />
                                 </div>
                                 {error && (
-                                    <p className="text-xs text-red-500 font-medium ml-1 flex items-center gap-1.5 animate-pulse">
+                                    <p className="text-[10px] text-red-500 font-black uppercase tracking-widest ml-1 flex items-center gap-2 animate-pulse">
                                         <ShieldAlert size={12} /> {error}
                                     </p>
                                 )}
@@ -131,17 +133,17 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
 
                             <button
                                 type="submit"
-                                className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black italic tracking-tight flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20"
+                                className="w-full py-5 bg-brand hover:bg-brand-light text-bg-deep rounded-2xl font-black italic tracking-tight flex items-center justify-center gap-2 transition-all shadow-xl shadow-brand/20 hover:scale-[1.02] active:scale-[0.98]"
                             >
-                                Continue to Verification <ArrowRight size={18} />
+                                CONTINUE TO VERIFICATION <ArrowRight size={18} />
                             </button>
                         </form>
                     ) : (
-                        <form onSubmit={handleCodeSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"> Security Code </label>
+                        <form onSubmit={handleCodeSubmit} className="space-y-8">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1"> Access Key </label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500 transition-colors group-focus-within:text-emerald-400">
+                                    <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-600 transition-colors group-focus-within:text-emerald-500">
                                         <KeyRound size={18} />
                                     </div>
                                     <input
@@ -151,11 +153,11 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
                                         placeholder="••••••••••••••••"
                                         required
                                         autoFocus
-                                        className="w-full bg-slate-900/50 border border-slate-800 focus:border-emerald-500/50 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-700 outline-none transition-all font-mono tracking-widest"
+                                        className="w-full bg-white/[0.02] border border-white/10 focus:border-emerald-500/40 rounded-2xl py-5 pl-14 pr-4 text-white placeholder:text-slate-700 outline-none transition-all font-mono tracking-[0.5em]"
                                     />
                                 </div>
                                 {error && (
-                                    <p className="text-xs text-red-500 font-medium ml-1 flex items-center gap-1.5 animate-shake">
+                                    <p className="text-[10px] text-red-500 font-black uppercase tracking-widest ml-1 flex items-center gap-2 animate-bounce">
                                         <ShieldAlert size={12} /> {error}
                                     </p>
                                 )}
@@ -164,22 +166,25 @@ const AdminAccessGate = ({ isOpen, onClose }) => {
                             <button
                                 type="submit"
                                 disabled={loading || !code}
-                                className={`w-full py-4 rounded-2xl font-black italic tracking-tight flex items-center justify-center gap-2 transition-all ${loading || !code
-                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20'
+                                className={`w-full py-5 rounded-2xl font-black italic tracking-tight flex items-center justify-center gap-2 transition-all ${loading || !code
+                                    ? 'bg-white/5 text-slate-600 cursor-not-allowed border border-white/5'
+                                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98]'
                                     }`}
                             >
-                                {loading ? 'Verifying...' : 'Authenticate Access'}
+                                {loading ? 'AUTHORIZING...' : 'AUTHENTICATE ACCESS'}
                                 {!loading && <ArrowRight size={18} />}
                             </button>
                         </form>
                     )}
                 </div>
 
-                <div className="bg-slate-900/50 border-t border-slate-800 p-4 flex items-center justify-center gap-2">
-                    <span className={`w-2 h-2 rounded-full animate-pulse transition-colors duration-500 ${step === 1 ? 'bg-blue-500' : 'bg-emerald-500'}`} />
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                        {step === 1 ? 'Step 1: Identity Verification' : 'Step 2: Security Clearance'}
+                <div className="bg-white/[0.03] border-t border-white/5 p-5 flex items-center justify-center gap-3">
+                    <div className="flex gap-1.5">
+                        <div className={`w-6 h-1 rounded-full transition-all duration-500 ${step === 1 ? 'bg-brand' : 'bg-slate-700'}`} />
+                        <div className={`w-6 h-1 rounded-full transition-all duration-500 ${step === 2 ? 'bg-emerald-500' : 'bg-slate-700'}`} />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                        {step === 1 ? 'Layer 01: Identity' : 'Layer 02: Clearance'}
                     </span>
                 </div>
             </div>

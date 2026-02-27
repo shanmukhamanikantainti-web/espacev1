@@ -7,7 +7,10 @@ import {
     FileText,
     Plus,
     MoreVertical,
-    Activity
+    Activity,
+    Sparkles,
+    ChevronRight,
+    Search
 } from 'lucide-react';
 import {
     AreaChart,
@@ -30,19 +33,21 @@ const data = [
 ];
 
 const StatCard = ({ title, value, icon: Icon, color, trend }) => (
-    <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-6 rounded-2xl hover:border-slate-700 transition-all">
-        <div className="flex justify-between items-start mb-4">
-            <div className={cn("p-3 rounded-xl", color)}>
-                <Icon size={24} className="text-white" />
+    <div className="glassmorphism p-8 rounded-[2rem] hover:border-brand/30 transition-all duration-500 group relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-brand/5 blur-3xl group-hover:bg-brand/10 transition-colors" />
+
+        <div className="flex justify-between items-start mb-6 relative z-10">
+            <div className={cn("p-4 rounded-2xl bg-brand/10 border border-brand/20 group-hover:scale-110 transition-transform duration-500", color)}>
+                <Icon size={24} className="text-brand" />
             </div>
             {trend && (
-                <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full flex items-center gap-1">
+                <span className="text-[10px] font-black text-brand bg-brand/10 border border-brand/20 px-3 py-1.5 rounded-full flex items-center gap-1.5 tracking-tighter uppercase">
                     <TrendingUp size={12} /> {trend}
                 </span>
             )}
         </div>
-        <h3 className="text-slate-400 text-sm font-medium mb-1">{title}</h3>
-        <p className="text-2xl font-bold text-white">{value}</p>
+        <h3 className="text-slate-500 text-xs font-black uppercase tracking-[0.2em] mb-2">{title}</h3>
+        <p className="text-3xl font-black text-white italic tracking-tighter">{value}</p>
     </div>
 );
 
@@ -52,7 +57,6 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Mock data for now, would fetch from Supabase in real app
         setMilestones([
             { id: 1, title: 'Project Research', status: true, due: '2024-03-01' },
             { id: 2, title: 'UI/UX Design', status: true, due: '2024-03-05' },
@@ -63,122 +67,181 @@ const Dashboard = () => {
     }, []);
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            {/* Header */}
-            <div className="flex justify-between items-end">
+        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-white/5">
                 <div>
-                    <p className="text-blue-400 font-bold tracking-widest text-xs uppercase mb-2">Workspace Overview</p>
-                    <h1 className="text-4xl font-black bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent italic">
-                        {profile?.team_name || 'Team Alpha'} Dashboard
+                    <div className="flex items-center gap-3 text-brand mb-3">
+                        <div className="w-8 h-px bg-brand/30" />
+                        <p className="font-black tracking-[0.3em] text-[10px] uppercase italic">Workspace Strategic Overview</p>
+                    </div>
+                    <h1 className="text-6xl font-black gold-text-gradient italic tracking-tighter leading-none">
+                        {profile?.team_name?.toUpperCase() || 'COMMAND'} DASHBOARD
                     </h1>
                 </div>
-                <div className="bg-slate-900/50 backdrop-blur-md border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-3">
-                    <Activity className="text-blue-400" size={18} />
-                    <span className="text-sm font-bold text-slate-300">Live Updates Enabled</span>
+                <div className="flex items-center gap-4">
+                    <div className="glassmorphism px-6 py-3 rounded-2xl flex items-center gap-4 border border-white/5 group hover:border-brand/20 transition-all cursor-pointer">
+                        <div className="relative">
+                            <Activity className="text-brand animate-pulse" size={18} />
+                            <div className="absolute inset-0 bg-brand/20 blur-sm rounded-full animate-ping" />
+                        </div>
+                        <span className="text-xs font-black text-slate-300 uppercase tracking-widest">Live Sync: Active</span>
+                        <ChevronRight className="text-slate-600 group-hover:text-brand transition-colors" size={16} />
+                    </div>
                 </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Overall Progress" value="65%" icon={TrendingUp} color="bg-blue-600" trend="+12%" />
-                <StatCard title="Milestones" value="12 / 18" icon={CheckCircle2} color="bg-purple-600" />
-                <StatCard title="GitHub Commits" value="142" icon={Github} color="bg-slate-700" trend="+24" />
-                <StatCard title="Documentation" value="85%" icon={FileText} color="bg-emerald-600" />
+            {/* Stats Ecosystem */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <StatCard title="Overall Progress" value="65%" icon={TrendingUp} trend="+12%" />
+                <StatCard title="Milestones" value="12 / 18" icon={CheckCircle2} />
+                <StatCard title="GitHub Commits" value="142" icon={Github} trend="+24" />
+                <StatCard title="Documentation" value="85%" icon={FileText} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Progress Chart */}
-                <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl">
-                    <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <TrendingUp className="text-blue-400" /> Progress Analytics
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                {/* Advanced Analytics */}
+                <div className="lg:col-span-2 glassmorphism p-10 rounded-[2.5rem] relative overflow-hidden group border border-white/5 hover:border-brand/20 transition-all duration-700">
+                    <div className="flex justify-between items-center mb-10">
+                        <h2 className="text-2xl font-black text-white italic tracking-tighter flex items-center gap-3">
+                            <div className="w-2 h-8 bg-brand rounded-full" />
+                            PROGRESS ANALYTICS
                         </h2>
-                        <select className="bg-slate-800 border-none text-slate-300 text-sm rounded-lg px-3 py-1 outline-none">
-                            <option>Last 30 Days</option>
-                            <option>Last 7 Days</option>
-                        </select>
+                        <div className="flex items-center gap-3">
+                            <div className="relative group/search">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/search:text-brand transition-colors" size={14} />
+                                <input type="text" placeholder="Search..." className="bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-white outline-none focus:border-brand/30 transition-all w-40" />
+                            </div>
+                            <select className="bg-brand/10 border border-brand/20 text-brand text-[10px] font-black uppercase tracking-widest rounded-xl px-4 py-2 outline-none hover:bg-brand/20 transition-all cursor-pointer">
+                                <option>LAST 30 DAYS</option>
+                                <option>LAST 7 DAYS</option>
+                            </select>
+                        </div>
                     </div>
-                    <div className="h-[300px] w-full">
+                    <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={data}>
                                 <defs>
-                                    <linearGradient id="colorProgress" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                                    <linearGradient id="colorBrand" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#FFB800" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#FFB800" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                                <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
-                                    itemStyle={{ color: '#fff' }}
+                                <CartesianGrid strokeDasharray="10 10" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="rgba(255,255,255,0.2)"
+                                    fontSize={10}
+                                    fontWeight="bold"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={15}
                                 />
-                                <Area type="monotone" dataKey="progress" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorProgress)" />
+                                <YAxis
+                                    stroke="rgba(255,255,255,0.2)"
+                                    fontSize={10}
+                                    fontWeight="bold"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(value) => `${value}%`}
+                                    dx={-10}
+                                />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#0A0A0A',
+                                        border: '1px solid rgba(255,184,0,0.2)',
+                                        borderRadius: '16px',
+                                        padding: '12px'
+                                    }}
+                                    itemStyle={{ color: '#FFB800', fontWeight: 'bold', fontSize: '12px' }}
+                                    cursor={{ stroke: '#FFB800', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="progress"
+                                    stroke="#FFB800"
+                                    strokeWidth={4}
+                                    fillOpacity={1}
+                                    fill="url(#colorBrand)"
+                                    animationDuration={2000}
+                                />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Milestones / Goals */}
-                <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <CheckCircle2 className="text-purple-400" /> Milestones
+                {/* Milestone Architecture */}
+                <div className="glassmorphism p-10 rounded-[2.5rem] border border-white/5 hover:border-brand/20 transition-all duration-700">
+                    <div className="flex justify-between items-center mb-8">
+                        <h2 className="text-2xl font-black text-white italic tracking-tighter flex items-center gap-3">
+                            <CheckCircle2 className="text-brand" size={24} />
+                            MILESTONES
                         </h2>
-                        <button className="p-2 bg-blue-600/10 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition-all">
-                            <Plus size={18} />
+                        <button className="w-10 h-10 bg-brand/10 text-brand border border-brand/20 hover:bg-brand hover:text-bg-deep rounded-xl transition-all flex items-center justify-center group shadow-lg shadow-brand/5">
+                            <Plus size={20} className="group-hover:rotate-90 transition-transform" />
                         </button>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                         {milestones.map((milestone) => (
-                            <div key={milestone.id} className="group p-4 bg-slate-800/20 rounded-2xl border border-slate-700/50 hover:border-slate-600 transition-all flex items-center gap-4">
+                            <div key={milestone.id} className="group p-5 bg-white/[0.02] rounded-[1.5rem] border border-white/5 hover:border-brand/30 transition-all duration-500 flex items-center gap-5 cursor-pointer">
                                 <div className={cn(
-                                    "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-                                    milestone.status ? "bg-emerald-500 border-emerald-500" : "border-slate-600 group-hover:border-blue-500"
+                                    "w-8 h-8 rounded-xl border flex items-center justify-center transition-all duration-500",
+                                    milestone.status
+                                        ? "bg-brand border-brand shadow-lg shadow-brand/20"
+                                        : "bg-white/5 border-white/10 group-hover:border-brand/50 group-hover:bg-brand/5"
                                 )}>
-                                    {milestone.status && <CheckCircle2 size={14} className="text-white" />}
+                                    {milestone.status && <CheckCircle2 size={16} className="text-bg-deep" />}
                                 </div>
                                 <div className="flex-1">
-                                    <p className={cn("text-sm font-medium", milestone.status ? "text-slate-400 line-through" : "text-slate-200")}>
+                                    <p className={cn(
+                                        "text-sm font-bold tracking-tight transition-colors",
+                                        milestone.status ? "text-slate-500 line-through" : "text-white group-hover:text-brand"
+                                    )}>
                                         {milestone.title}
                                     </p>
-                                    <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
-                                        <Clock size={10} /> Due {milestone.due}
-                                    </p>
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                        <div className="p-1 bg-white/5 rounded-md">
+                                            <Clock size={10} className="text-slate-500" />
+                                        </div>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Due {milestone.due}</p>
+                                    </div>
                                 </div>
-                                <button className="opacity-0 group-hover:opacity-100 p-2 hover:bg-slate-800 rounded-lg text-slate-500 transition-all">
+                                <button className="opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-lg text-slate-500 hover:text-white transition-all">
                                     <MoreVertical size={16} />
                                 </button>
                             </div>
                         ))}
                     </div>
-                    <button className="w-full mt-6 py-3 border border-slate-700 border-dashed rounded-2xl text-slate-400 text-sm font-medium hover:bg-slate-800/50 transition-all">
-                        View All Goals
+                    <button className="w-full mt-10 py-5 bg-white/[0.02] border border-white/10 border-dashed rounded-[1.5rem] text-slate-500 text-xs font-black uppercase tracking-[0.2em] hover:bg-brand/5 hover:text-brand hover:border-brand/30 transition-all duration-500">
+                        ACCESS ARCHIVE
                     </button>
                 </div>
             </div>
 
-            {/* Activity Log Section (Quick View) */}
-            <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl">
-                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                    <Activity className="text-emerald-400" /> Recent Activity
+            {/* Strategic Feed */}
+            <div className="glassmorphism p-10 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[120px] pointer-events-none" />
+                <h2 className="text-2xl font-black text-white italic tracking-tighter mb-10 flex items-center gap-3">
+                    <div className="w-2 h-8 bg-emerald-500 rounded-full" />
+                    RECENT STRATEGIC ACTIVITY
                 </h2>
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex gap-4 relative">
-                            {i !== 3 && <div className="absolute left-5 top-10 bottom-0 w-px bg-slate-800" />}
-                            <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center z-10">
-                                <Github size={18} className="text-slate-400" />
+                        <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex gap-5 hover:border-emerald-500/30 transition-all group/item">
+                            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/5 group-hover/item:scale-110 transition-transform duration-500">
+                                <Github size={24} className="text-emerald-400" />
                             </div>
-                            <div className="flex-1 pb-4">
-                                <div className="flex justify-between items-start">
-                                    <p className="text-sm text-slate-200">
-                                        <span className="font-bold text-white">Rahul P.</span> pushed 3 new commits to <span className="text-blue-400">main</span>
-                                    </p>
-                                    <span className="text-xs text-slate-500">2h ago</span>
+                            <div className="flex-1">
+                                <div className="flex justify-between items-start mb-2">
+                                    <p className="text-sm font-black text-white tracking-tight">Rahul P.</p>
+                                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">2h ago</span>
                                 </div>
-                                <p className="text-xs text-slate-500 mt-1 italic">"Initial setup for auth context and protected routes"</p>
+                                <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                                    Pushed 3 commits to <span className="text-brand font-bold underline underline-offset-4 decoration-brand/30">main</span>
+                                </p>
+                                <p className="text-[10px] text-slate-500 mt-3 italic bg-white/5 p-2 rounded-lg border border-white/5">
+                                    "Initial setup for auth context and protected routes..."
+                                </p>
                             </div>
                         </div>
                     ))}
