@@ -214,18 +214,16 @@ CREATE POLICY "Admins can manage scores." ON public.scores
         OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
     );
 
--- Trigger to create profile on signup
+-- Trigger to create profile on signup (basic fields only, terabox updated separately)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, name, email, role, terabox_email, terabox_link)
+  INSERT INTO public.profiles (id, name, email, role)
   VALUES (new.id, new.raw_user_meta_data->>'full_name', new.email, 
     CASE 
       WHEN new.email = 'shanmukhamanikanta.inti@gmail.com' THEN 'Admin'::user_role
       ELSE COALESCE((new.raw_user_meta_data->>'role')::user_role, 'Member'::user_role)
-    END,
-    new.raw_user_meta_data->>'terabox_email',
-    new.raw_user_meta_data->>'terabox_link');
+    END);
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -233,3 +231,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
