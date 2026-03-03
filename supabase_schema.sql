@@ -133,13 +133,61 @@ CREATE POLICY "Projects viewable by members and admin." ON public.projects
         OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
     );
 
+-- 5. Milestones: Members can see their milestones, Admins can manage.
+CREATE POLICY "Milestones viewable by team members and admin." ON public.milestones
+    FOR SELECT USING (
+        EXISTS (SELECT 1 FROM team_members tm JOIN projects p ON tm.team_id = p.team_id WHERE p.id = milestones.project_id AND tm.user_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+    );
+CREATE POLICY "Admins can manage milestones." ON public.milestones
+    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+
+-- 6. Files: Members can see their files, Admins can manage.
+CREATE POLICY "Files viewable by team members and admin." ON public.files
+    FOR SELECT USING (
+        EXISTS (SELECT 1 FROM team_members WHERE team_id = files.team_id AND user_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+    );
+CREATE POLICY "Admins can manage files." ON public.files
+    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+
+-- 7. GitHub Links: Members can see their links, Admins can manage.
+CREATE POLICY "GitHub links viewable by team members and admin." ON public.github_links
+    FOR SELECT USING (
+        EXISTS (SELECT 1 FROM team_members WHERE team_id = github_links.team_id AND user_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+    );
+CREATE POLICY "Admins can manage github links." ON public.github_links
+    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+
+-- 8. Activity Logs: Users can see their own logs, Admins can see all.
+CREATE POLICY "Logs viewable by user and admin." ON public.activity_logs
+    FOR SELECT USING (
+        user_id = auth.uid()
+        OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+    );
+CREATE POLICY "Anyone can insert logs (system level)." ON public.activity_logs
+    FOR INSERT WITH CHECK (true);
+
+-- 9. Scores: Members can see their scores, Admins can manage.
+CREATE POLICY "Scores viewable by team members and admin." ON public.scores
+    FOR SELECT USING (
+        EXISTS (SELECT 1 FROM team_members WHERE team_id = scores.team_id AND user_id = auth.uid())
+        OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+    );
+CREATE POLICY "Admins can manage scores." ON public.scores
+    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+
 -- Trigger to create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   INSERT INTO public.profiles (id, name, email, role, terabox_email, terabox_link)
   VALUES (new.id, new.raw_user_meta_data->>'full_name', new.email, 
-    COALESCE((new.raw_user_meta_data->>'role')::user_role, 'Member'::user_role),
+    CASE 
+      WHEN new.email = 'shanmukhamanikanta.inti@gmail.com' THEN 'Admin'::user_role
+      ELSE COALESCE((new.raw_user_meta_data->>'role')::user_role, 'Member'::user_role)
+    END,
     new.raw_user_meta_data->>'terabox_email',
     new.raw_user_meta_data->>'terabox_link');
   RETURN new;
