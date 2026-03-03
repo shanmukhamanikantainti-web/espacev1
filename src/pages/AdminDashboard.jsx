@@ -136,40 +136,40 @@ const AdminDashboard = () => {
         setStatus({ type: 'info', msg: 'PROVISIONING CREDENTIALS...' });
 
         try {
-            // Sign up with only basic metadata (name & role)
-            // TeraBox fields will be saved separately to avoid trigger issues
+            // Step 1: Create auth user with NO metadata (avoids trigger issues)
             const { data, error: authErr } = await supabase.auth.signUp({
                 email: accountData.email,
-                password: accountData.password,
-                options: {
-                    data: {
-                        full_name: accountData.name,
-                        role: accountData.role
-                    }
-                }
+                password: accountData.password
             });
 
-            if (authErr) throw new Error(`Auth Error: ${authErr.message}`);
+            if (authErr) throw new Error(authErr.message);
             if (!data.user) throw new Error('User creation failed - no user returned');
 
-            // Wait for the trigger to create the profile row
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Step 2: Wait briefly for auth to complete
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-            // Save TeraBox details directly to profiles table (bypasses trigger)
+            // Step 3: Manually upsert profile (in case trigger created a partial one)
+            const profileData = {
+                id: data.user.id,
+                name: accountData.name,
+                email: accountData.email,
+                role: accountData.role,
+            };
+
+            // Add TeraBox fields for Leaders
             if (accountData.role === 'Leader' && accountData.terabox_email) {
-                const { error: tbErr } = await supabase
-                    .from('profiles')
-                    .update({
-                        terabox_email: accountData.terabox_email,
-                        terabox_link: accountData.terabox_link
-                    })
-                    .eq('id', data.user.id);
-
-                if (tbErr) console.warn('TeraBox update warning:', tbErr.message);
+                profileData.terabox_email = accountData.terabox_email;
+                profileData.terabox_link = accountData.terabox_link;
             }
 
-            // If team is selected, assign to team
-            if (accountData.team_id && data.user) {
+            const { error: profileErr } = await supabase
+                .from('profiles')
+                .upsert(profileData, { onConflict: 'id' });
+
+            if (profileErr) console.warn('Profile upsert warning:', profileErr.message);
+
+            // Step 4: Assign to team if selected
+            if (accountData.team_id) {
                 const { error: memberErr } = await supabase
                     .from('team_members')
                     .insert({ team_id: accountData.team_id, user_id: data.user.id });
