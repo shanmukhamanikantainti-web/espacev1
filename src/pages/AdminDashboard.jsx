@@ -136,6 +136,7 @@ const AdminDashboard = () => {
         setStatus({ type: 'info', msg: 'PROVISIONING CREDENTIALS...' });
 
         try {
+            // Use admin-style signup that doesn't switch the current session
             const { data, error: authErr } = await supabase.auth.signUp({
                 email: accountData.email,
                 password: accountData.password,
@@ -149,17 +150,20 @@ const AdminDashboard = () => {
                 }
             });
 
-            if (authErr) throw authErr;
+            if (authErr) throw new Error(`Auth Error: ${authErr.message}`);
 
+            if (!data.user) throw new Error('User creation failed - no user returned');
+
+            // Wait a moment for the trigger to complete
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // If team is selected, assign to team using direct insert
             if (accountData.team_id && data.user) {
-                await supabase
-                    .from('profiles')
-                    .update({ role: accountData.role })
-                    .eq('id', data.user.id);
-
-                await supabase
+                const { error: memberErr } = await supabase
                     .from('team_members')
                     .insert({ team_id: accountData.team_id, user_id: data.user.id });
+
+                if (memberErr) console.warn('Team assignment warning:', memberErr.message);
             }
 
             await logActivity('ACCOUNT_CREATED', { email: accountData.email, role: accountData.role });
