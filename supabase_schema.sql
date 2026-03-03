@@ -118,19 +118,38 @@ CREATE POLICY "Users can update own profile." ON public.profiles
 CREATE POLICY "Teams are viewable by everyone." ON public.teams
     FOR SELECT USING (true);
 CREATE POLICY "Admins can manage teams." ON public.teams
-    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+    USING (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    )
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    );
 
 -- 3. Team Members: Everyone can see members, Admins can manage.
 CREATE POLICY "Members are viewable by everyone." ON public.team_members
     FOR SELECT USING (true);
 CREATE POLICY "Admins can manage team members." ON public.team_members
-    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+    USING (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    );
 
 -- 4. Projects: Members can see their project, Admins can see all.
-CREATE POLICY "Projects viewable by members and admin." ON public.projects
     FOR SELECT USING (
         EXISTS (SELECT 1 FROM team_members WHERE team_id = projects.team_id AND user_id = auth.uid())
         OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    );
+CREATE POLICY "Admins can manage projects." ON public.projects
+    USING (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    )
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
     );
 
 -- 5. Milestones: Members can see their milestones, Admins can manage.
@@ -138,33 +157,46 @@ CREATE POLICY "Milestones viewable by team members and admin." ON public.milesto
     FOR SELECT USING (
         EXISTS (SELECT 1 FROM team_members tm JOIN projects p ON tm.team_id = p.team_id WHERE p.id = milestones.project_id AND tm.user_id = auth.uid())
         OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
     );
 CREATE POLICY "Admins can manage milestones." ON public.milestones
-    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+    USING (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    );
 
 -- 6. Files: Members can see their files, Admins can manage.
 CREATE POLICY "Files viewable by team members and admin." ON public.files
     FOR SELECT USING (
         EXISTS (SELECT 1 FROM team_members WHERE team_id = files.team_id AND user_id = auth.uid())
         OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
     );
 CREATE POLICY "Admins can manage files." ON public.files
-    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+    USING (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    );
 
 -- 7. GitHub Links: Members can see their links, Admins can manage.
 CREATE POLICY "GitHub links viewable by team members and admin." ON public.github_links
     FOR SELECT USING (
         EXISTS (SELECT 1 FROM team_members WHERE team_id = github_links.team_id AND user_id = auth.uid())
         OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
     );
 CREATE POLICY "Admins can manage github links." ON public.github_links
-    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+    USING (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    );
 
 -- 8. Activity Logs: Users can see their own logs, Admins can see all.
 CREATE POLICY "Logs viewable by user and admin." ON public.activity_logs
     FOR SELECT USING (
         user_id = auth.uid()
         OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
     );
 CREATE POLICY "Anyone can insert logs (system level)." ON public.activity_logs
     FOR INSERT WITH CHECK (true);
@@ -174,9 +206,13 @@ CREATE POLICY "Scores viewable by team members and admin." ON public.scores
     FOR SELECT USING (
         EXISTS (SELECT 1 FROM team_members WHERE team_id = scores.team_id AND user_id = auth.uid())
         OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
     );
 CREATE POLICY "Admins can manage scores." ON public.scores
-    USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin'));
+    USING (
+        EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'Admin')
+        OR (auth.jwt() ->> 'email' = 'shanmukhamanikanta.inti@gmail.com')
+    );
 
 -- Trigger to create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
