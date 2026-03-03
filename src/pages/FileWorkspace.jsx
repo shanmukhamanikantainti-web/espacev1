@@ -153,13 +153,35 @@ const FileWorkspace = () => {
                         <div className="absolute top-[-20%] right-[-10%] p-4 opacity-10 group-hover:rotate-12 transition-transform duration-1000">
                             <Cloud size={120} />
                         </div>
-                        <h3 className="text-xl font-black text-brand italic mb-3 tracking-tighter leading-none">ALLOCATION UPGRADE</h3>
+                        <h3 className="text-xl font-black text-brand italic mb-3 tracking-tighter leading-none">
+                            {profile?.terabox_link ? 'TERABOX INTEGRATED' : 'ALLOCATION UPGRADE'}
+                        </h3>
                         <p className="text-xs font-bold font-poppets text-brand/70 mb-6 uppercase tracking-wide leading-relaxed">
-                            Utilizing <span className="text-white font-black">14.2 MB</span> of standard <span className="text-white font-black">50 MB</span> institutional quota.
+                            {profile?.terabox_link ? (
+                                <>
+                                    Unit storage managed via <span className="text-white font-black">{profile.terabox_email || 'TeraBox'}</span>.
+                                    Strategic quota expanded to <span className="text-white font-black">1 TB</span>.
+                                </>
+                            ) : (
+                                <>
+                                    Utilizing <span className="text-white font-black">14.2 MB</span> of standard <span className="text-white font-black">50 MB</span> institutional quota.
+                                </>
+                            )}
                         </p>
-                        <button className="text-brand font-black text-[10px] tracking-[0.2em] uppercase hover:underline decoration-brand decoration-2 underline-offset-8 flex items-center gap-2">
-                            REQUEST QUOTA EXPANSION <ChevronRight size={14} />
-                        </button>
+                        {profile?.terabox_link ? (
+                            <a
+                                href={profile.terabox_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-brand font-black text-[10px] tracking-[0.2em] uppercase hover:underline decoration-brand decoration-2 underline-offset-8 flex items-center gap-2"
+                            >
+                                ACCESS CLOUD REPOSITORY <ExternalLink size={14} />
+                            </a>
+                        ) : (
+                            <button className="text-brand font-black text-[10px] tracking-[0.2em] uppercase hover:underline decoration-brand decoration-2 underline-offset-8 flex items-center gap-2">
+                                REQUEST QUOTA EXPANSION <ChevronRight size={14} />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

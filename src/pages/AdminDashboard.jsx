@@ -38,7 +38,9 @@ const AdminDashboard = () => {
         email: '',
         password: '',
         role: 'Member',
-        team_id: ''
+        team_id: '',
+        terabox_email: '',
+        terabox_link: ''
     });
 
     useEffect(() => {
@@ -140,7 +142,9 @@ const AdminDashboard = () => {
                 options: {
                     data: {
                         full_name: accountData.name,
-                        role: accountData.role
+                        role: accountData.role,
+                        terabox_email: accountData.role === 'Leader' ? accountData.terabox_email : null,
+                        terabox_link: accountData.role === 'Leader' ? accountData.terabox_link : null
                     }
                 }
             });
@@ -160,7 +164,7 @@ const AdminDashboard = () => {
 
             await logActivity('ACCOUNT_CREATED', { email: accountData.email, role: accountData.role });
             setStatus({ type: 'success', msg: 'IDENTITY PROVISIONED. USER CAN NOW ACCESS WORKSPACE.' });
-            setAccountData({ name: '', email: '', password: '', role: 'Member', team_id: '' });
+            setAccountData({ name: '', email: '', password: '', role: 'Member', team_id: '', terabox_email: '', terabox_link: '' });
             fetchProfiles();
         } catch (err) {
             setStatus({ type: 'error', msg: err.message.toUpperCase() });
@@ -424,6 +428,51 @@ const AdminDashboard = () => {
                                         </select>
                                     </div>
                                 </div>
+
+                                {accountData.role === 'Leader' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 duration-500">
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-brand uppercase tracking-[0.25em] ml-1">TeraBox Email</label>
+                                            <div className="relative group">
+                                                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-brand transition-colors" size={18} />
+                                                <input
+                                                    required={accountData.role === 'Leader'}
+                                                    type="email"
+                                                    placeholder="leader.terabox@gmail.com"
+                                                    value={accountData.terabox_email}
+                                                    onChange={(e) => setAccountData({ ...accountData, terabox_email: e.target.value })}
+                                                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-4 pl-14 pr-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-brand uppercase tracking-[0.25em] ml-1">TeraBox Storage Link</label>
+                                            <div className="relative group flex gap-2">
+                                                <div className="relative flex-1">
+                                                    <Database className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-brand transition-colors" size={18} />
+                                                    <input
+                                                        required={accountData.role === 'Leader'}
+                                                        type="url"
+                                                        placeholder="https://terabox.com/s/..."
+                                                        value={accountData.terabox_link}
+                                                        onChange={(e) => setAccountData({ ...accountData, terabox_link: e.target.value })}
+                                                        className="w-full bg-white/[0.02] border border-white/10 rounded-2xl py-4 pl-14 pr-4 text-white focus:border-brand/40 outline-none transition-all text-sm font-bold"
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const slug = accountData.name.toLowerCase().replace(/\s+/g, '_') || 'leader';
+                                                        setAccountData({ ...accountData, terabox_link: `https://www.terabox.com/webmaster?access_code=${slug}_storage_node` });
+                                                    }}
+                                                    className="px-4 bg-brand/10 border border-brand/20 rounded-2xl text-[10px] font-black text-brand uppercase tracking-widest hover:bg-brand/20 transition-all shrink-0"
+                                                >
+                                                    Generate
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] ml-1">Assigned Operational Unit</label>

@@ -7,6 +7,8 @@ CREATE TABLE public.profiles (
     name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     role user_role DEFAULT 'Member',
+    terabox_email TEXT,
+    terabox_link TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -135,13 +137,11 @@ CREATE POLICY "Projects viewable by members and admin." ON public.projects
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, name, email, role)
+  INSERT INTO public.profiles (id, name, email, role, terabox_email, terabox_link)
   VALUES (new.id, new.raw_user_meta_data->>'full_name', new.email, 
-    CASE 
-      WHEN new.email LIKE '%@vishnu.edu.in' THEN 'Member'::user_role
-      -- Add admin email check here if needed
-      ELSE 'Member'::user_role 
-    END);
+    COALESCE((new.raw_user_meta_data->>'role')::user_role, 'Member'::user_role),
+    new.raw_user_meta_data->>'terabox_email',
+    new.raw_user_meta_data->>'terabox_link');
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
